@@ -23,14 +23,13 @@ func New(service Service) *Endpoint {
 }
 
 func (e *Endpoint) GetTokens(ctx echo.Context) error {
-	tokens, err := json.Marshal(e.service.GetTokens())
+	tokens, err := json.Marshal(token.Token{Name: "test", Address: "niger"})
 
 	if err != nil {
 		return nil
 	}
 
 	err = ctx.JSONBlob(http.StatusOK, tokens)
-
 	if err != nil {
 		return err
 	}

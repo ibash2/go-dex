@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go-dex/internal/app/endpoint"
 	"go-dex/internal/app/service"
-	"go-dex/internal/app/sqlxx"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,13 +17,13 @@ type App struct {
 func New() (*App, error) {
 	app := &App{}
 
-	db, err := sqlxx.New(sqlxx.LoadConfig())
+	// db, err := sqlxx.New(sqlxx.LoadConfig())
 
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	app.service = service.New(db)
+	// app.service = service.New(db)
 	app.endpoint = endpoint.New(app.service)
 	app.echo = echo.New()
 
