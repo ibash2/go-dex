@@ -28,8 +28,8 @@ func LoadConfig() *Config {
 	var config Config
 
 	config.Host = "localhost"
-	config.Port = "5431"
-	config.Dbname = "postgres"
+	config.Port = "5432"
+	config.Dbname = "go_dex"
 	config.SslMode = "disable"
 	config.User = "postgres"
 	config.Pass = "postgres"

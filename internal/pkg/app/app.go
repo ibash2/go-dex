@@ -28,6 +28,7 @@ func New() (*App, error) {
 	app.echo = echo.New()
 
 	app.echo.GET("/tokens", app.endpoint.GetTokens)
+	app.echo.POST("/user", app.endpoint.CreateUser)
 
 	return app, nil
 }
