@@ -1,7 +1,6 @@
 package endpoint
 
 import (
-	"encoding/json"
 	"go-dex/internal/pkg/token"
 	"net/http"
 
@@ -10,11 +9,12 @@ import (
 
 type CreateUser struct {
 	Address string `json:"address"`
+	Inviter int    `json:"inviter"`
 }
 
 type Service interface {
-	GetTokens() []token.Token
-	CreateUser(address string) error
+	GetTokens() ([]token.Token, error)
+	CreateUser(address string, inviterId int) error
 }
 
 type Endpoint struct {
@@ -28,13 +28,13 @@ func New(service Service) *Endpoint {
 }
 
 func (e *Endpoint) GetTokens(ctx echo.Context) error {
-	tokens, err := json.Marshal(token.Token{Name: "test", Address: "niger"})
+	tokens, err := e.service.GetTokens()
 
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	err = ctx.JSONBlob(http.StatusOK, tokens)
+	err = ctx.JSON(http.StatusOK, tokens)
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
@@ -47,7 +47,7 @@ func (e *Endpoint) CreateUser(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	err := e.service.CreateUser(user.Address)
+	err := e.service.CreateUser(user.Address, user.Inviter)
 
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)

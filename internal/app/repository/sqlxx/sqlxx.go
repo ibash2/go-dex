@@ -2,7 +2,10 @@ package sqlxx
 
 import (
 	"fmt"
+	"log"
 	"time"
+
+	"go-dex/internal/pkg/token"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -41,21 +44,21 @@ func LoadConfig() *Config {
 	return &config
 }
 
-// DB is a wrapper around sqlx.DB
-type DB struct {
+// DBrepo is a wrapper around sqlx.DBrepo
+type DBrepo struct {
 	*sqlx.DB
 
 	cfg *Config
 }
 
 // New - create new connect to DB
-func New(cfg *Config) (db *DB, myerr error) {
+func New(cfg *Config) (db *DBrepo, myerr error) {
 
 	// Сформировать строку подключения
 	cfg.ConnectString = fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s user=%s password=%s ", cfg.Host, cfg.Port, cfg.Dbname, cfg.SslMode, cfg.User, cfg.Pass)
 
 	// Создаем новый сервис
-	db = &DB{
+	db = &DBrepo{
 		cfg: cfg,
 	}
 	sqlxDb, err := sqlx.Connect(cfg.DriverName, cfg.ConnectString)
@@ -66,4 +69,32 @@ func New(cfg *Config) (db *DB, myerr error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+func (db *DBrepo) GetTokens(tokens *[]token.Token) error {
+	err := db.Select(&tokens, "SELECT symbol, name, address FROM token")
+
+	if err != nil {
+		fmt.Printf("failed to get tokens: %v", err)
+	}
+
+	return nil
+}
+
+func (db *DBrepo) AddUser(address string, inviterId int) error {
+	result, err := db.Exec(
+		`INSERT INTO "user" (address, points) VALUES ($1, $2)`,
+		address, 100)
+
+	if err != nil {
+		log.Fatalf("Error inserting user: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Fatalf("Error getting affected rows: %v", err)
+	}
+
+	fmt.Printf("Number of rows affected: %d\n", rowsAffected)
+	return nil
 }

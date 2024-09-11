@@ -2,49 +2,37 @@ package service
 
 import (
 	"fmt"
-	"log"
 
-	"go-dex/internal/app/sqlxx"
+	"go-dex/internal/app/repository"
 	"go-dex/internal/pkg/token"
 )
 
 type Service struct {
-	db *sqlxx.DB
+	db repository.Repository
 }
 
-func New(db *sqlxx.DB) *Service {
+func New(db repository.Repository) *Service {
 	return &Service{
 		db: db,
 	}
 }
 
-func (s *Service) GetTokens() []token.Token {
-	var token []token.Token
-
-	err := s.db.Select(&token, "SELECT symbol, name, address FROM token")
+func (s *Service) GetTokens() ([]token.Token, error) {
+	var tokens []token.Token
+	err := s.db.GetTokens(&tokens)
 
 	if err != nil {
-		fmt.Printf("failed to get tokens: %v", err)
+		return nil, fmt.Errorf("failed to get tokens: %w", err)
 	}
 
-	return token
+	return tokens, nil
 }
 
-func (s *Service) CreateUser(address string) error {
-	result, err := s.db.Exec(
-		`INSERT INTO "user" (address, points) VALUES ($1, $2)`,
-		address, 100)
+func (s *Service) CreateUser(address string, inviterId int) error {
+	err := s.db.AddUser(address, inviterId)
 
 	if err != nil {
-		log.Fatalf("Error inserting user: %v", err)
+		fmt.Printf("failed to create user: %v", err)
 	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		log.Fatalf("Error getting affected rows: %v", err)
-	}
-
-	fmt.Printf("Number of rows affected: %d\n", rowsAffected)
-
 	return nil
 }
