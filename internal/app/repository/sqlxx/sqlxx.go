@@ -30,12 +30,12 @@ type Config struct {
 func LoadConfig() *Config {
 	var config Config
 
-	config.Host = "localhost"
+	config.Host = "postgres"
 	config.Port = "5432"
-	config.Dbname = "go_dex"
+	config.Dbname = "test_backend"
 	config.SslMode = "disable"
-	config.User = "postgres"
-	config.Pass = "postgres"
+	config.User = "admindb"
+	config.Pass = "1234"
 	config.ConnMaxLifetime = 5 * time.Second
 	config.MaxOpenConns = 10
 	config.MaxIdleConns = 5
@@ -81,9 +81,10 @@ func (db *DBrepo) GetTokens(tokens *[]token.Token) error {
 	return nil
 }
 
+// AddUser - create new user in DB
 func (db *DBrepo) AddUser(address string, inviterId int) error {
 	result, err := db.Exec(
-		`INSERT INTO "user" (address, points) VALUES ($1, $2)`,
+		`INSERT INTO "users" (address, points) VALUES ($1, $2)`,
 		address, 100)
 
 	if err != nil {

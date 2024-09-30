@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  backend:
+    container_name: backend
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: sh -c "go run main.go"
+    volumes:
+      - .:/go-dex
+    networks:
+      - app_network
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+  postgres:
+    container_name: postgres
+    image: postgres:16.2-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - app_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  go-dex:
+
+networks:
+  app_network:

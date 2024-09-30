@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 	"go-dex/internal/app/endpoint"
-	"go-dex/internal/app/repository/mock"
+	"go-dex/internal/app/repository/sqlxx"
 	"go-dex/internal/app/service"
 
 	"github.com/labstack/echo/v4"
@@ -18,8 +18,8 @@ type App struct {
 func New() (*App, error) {
 	app := &App{}
 
-	db, err := mock.New()
-	// db, err := sqlxx.New(sqlxx.LoadConfig())
+	// db, err := mock.New()
+	db, err := sqlxx.New(sqlxx.LoadConfig())
 	if err != nil {
 		return nil, err
 	}
