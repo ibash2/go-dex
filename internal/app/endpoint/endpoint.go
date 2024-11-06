@@ -3,9 +3,9 @@ package endpoint
 import (
 	"net/http"
 
-	"go-dex/internal/pkg/token"
-
 	"github.com/labstack/echo/v4"
+
+	"go-dex/internal/pkg/token"
 )
 
 type CreateUser struct {
