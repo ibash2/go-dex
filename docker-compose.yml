@@ -1,6 +1,33 @@
-version: '3.9'
-
 services:
+  # geth-init:
+  #   image: ethereum/client-go:latest
+  #   volumes:
+  #     - ./dex/data:/data/geth
+  #     - ./dex/data:/gen
+  #   command: init /gen/genesis.json
+  
+  geth:
+    image: ethereum/client-go:latest
+    ports:
+      - "8547:8547"
+      - "8546:8546"
+    # volumes:
+    #   - ./dex/data:/data/geth
+    command: >
+      --http
+      --http.addr 0.0.0.0
+      --http.port 8547
+      --http.api eth,net,web3,personal,miner
+      --http.corsdomain "*"
+      --ws
+      --ws.addr 0.0.0.0
+      --ws.port 8546
+      --ws.api eth,net,web3,personal,miner
+      --verbosity 3
+      --datadir /data/geth
+      --networkid 1337
+      --dev
+
   backend:
     container_name: backend
     build: 

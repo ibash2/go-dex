@@ -1,0 +1,105 @@
+volumes:
+  db-data:
+
+services:
+  app-api:
+    build:
+      context: ../../
+      dockerfile: ./deploy/compose/bot-api/Dockerfile
+    container_name: app-api
+    ports:
+      - 8000:${APP_HTTP_PORT}
+    environment:
+      - APP_HTTP_PORT=${APP_HTTP_PORT}
+      - HTTP_RPC=${HTTP_RPC}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@${POSTGRES_HOST:-app-db-host}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}}
+    deploy:
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 0.0.0.0:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      app-db:
+        condition: service_healthy
+      app-mq:
+        condition: service_healthy
+
+  place-order-handler:
+    build:
+      context: ../../
+      dockerfile: ./deploy/compose/place-order-handler/Dockerfile
+    environment:
+      - HTTP_RPC=${HTTP_RPC}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@${POSTGRES_HOST:-app-db-host}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}}
+    depends_on:
+      app-db:
+        condition: service_healthy
+      app-mq:
+        condition: service_healthy
+
+  pool-change-handler:
+    build:
+      context: ../../
+      dockerfile: ./deploy/compose/pool-change-handler/Dockerfile
+    environment:
+      - HTTP_RPC=${HTTP_RPC}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@${POSTGRES_HOST:-app-db-host}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}}
+    depends_on:
+      app-db:
+        condition: service_healthy
+      app-mq:
+        condition: service_healthy
+
+  pancake-pool-listener:
+    build:
+      context: ../../
+      dockerfile: ./deploy/compose/pool-listener/Dockerfile
+    environment:
+      - WS_RPC=${WS_RPC}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - ROUTER_ADDRESS=${PANCAKE_ROUTER_ADDRESS}
+    depends_on:
+      app-db:
+        condition: service_healthy
+      app-mq:
+        condition: service_healthy
+
+  app-db:
+    image: postgres:14.5-alpine
+    container_name: app-db
+    env_file: "../../.env"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # - PGDATA="/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    # volumes:
+    #   - db-data:/var/lib/postgresql/data
+    ports:
+      - 5431:5432
+
+  app-mq:
+    image: rabbitmq:3-management
+    container_name: app-mq
+    env_file: "../../.env"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 3

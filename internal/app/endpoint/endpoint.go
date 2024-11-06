@@ -2,7 +2,8 @@ package endpoint
 
 import (
 	"net/http"
-	"os/user"
+
+	"go-dex/internal/pkg/token"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,7 +14,7 @@ type CreateUser struct {
 }
 
 type Service interface {
-	GetTokens() ([]user.User, error)
+	GetTokens() ([]token.Token, error)
 	CreateUser(address string, inviterId int) error
 }
 
