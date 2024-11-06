@@ -2,15 +2,10 @@ package endpoint
 
 import (
 	"net/http"
-<<<<<<< HEAD
-=======
 
 	"go-dex/internal/pkg/token"
->>>>>>> 797cd72 (added v3 contract deployer)
 
 	"github.com/labstack/echo/v4"
-
-	"go-dex/internal/pkg/token"
 )
 
 type CreateUser struct {
